@@ -1,0 +1,145 @@
+SELECT employees.firstname, employees.lastname, orders.orderdate
+FROM orders
+INNER JOIN employees ON orders.employeeid = employees.employeeid
+ORDER BY orders.orderdate DESC
+LIMIT 25;
+
+SELECT * FROM orders limit 10;
+
+select order_details.orderid, 
+    products.productname, 
+    order_details.unitprice, 
+    order_details.quantity
+from order_details
+inner join products on order_details.productid = products.productid
+order by cast(order_details.unitprice as real) desc
+;
+
+select od.orderid, 
+    p.productname, 
+    od.unitprice, 
+    od.quantity
+from order_details as od
+inner join products as p on od.productid = p.productid
+INNER JOIN orders AS o ON od.orderid = o.orderid
+order by cast(od.quantity as real) desc;
+
+
+select od.orderid, 
+    p.productname, 
+    od.unitprice, 
+    od.quantity,
+    o.shipcountry
+from order_details as od
+inner join products as p on od.productid = p.productid
+inner join orders as o on od.orderid = o.orderid
+order by cast(od.quantity as real) desc
+;
+
+select * from suppliers;
+
+select productname, count(distinct(supplierid)) from products
+group by productname
+order by count(distinct(supplierid)) desc;
+
+SELECT categories.categoryname, products.productname
+FROM products
+INNER JOIN categories ON products.categoryid = categories.categoryid
+LIMIT 25;
+
+SELECT categories.categoryname, products.productname
+FROM products
+INNER JOIN categories ON products.categoryid = categories.categoryid
+order by productname;
+
+
+create table orders_missing as select * from orders;
+update orders_missing set shipvia=NULL where shipvia=2;
+
+select COUNT(*)
+from orders_missing
+left join shippers on orders.shipvia = shippers.shipperid
+;
+
+select COUNT(*)
+from orders_missing
+inner join shippers on orders_missing.shipvia = shippers.shipperid
+;
+
+select Count(*)
+from orders_missing
+left join shippers on orders_missing.shipvia = shippers.shipperid
+where orders_missing.shipvia IS NULL
+
+
+SELECT c.contactname, o.orderdate
+FROM orders as o
+left JOIN customers as c ON c.customerid = o.customerid
+order by o.orderdate desc;
+
+select orderid, SUM(quantity)
+from order_details
+group by orderid;
+
+select orderid, sum(quantity)
+from order_details
+group by orderid;
+
+select country, count(*)
+from customers
+WHERE country = 'USA'
+group by country
+order by count(*) DESc;
+
+select country, count(*)
+from customers
+where country != 'USA'
+group by country
+order by count(*) desc;
+
+select * from products
+ORDER BY discontinued, supplierid;
+
+
+SELECT supplierid, COUNT(*)
+FROM products
+GROUP BY supplierid
+ORDER BY COUNT(*) DESC;
+
+
+select supplierid, count(*) 
+from products
+group by supplierid
+order by count(*) DESC;
+
+SELECT orderid, SUM(quantity), MAX(discount)
+FROM order_details
+WHERE orderid > 10300
+GROUP BY orderid
+HAVING SUM(quantity) > 100 and MAX(cast(discount as real)) > 0;
+
+SELect o.orderid, s.*
+from orders AS o
+inner join shippers as s on o.shipvia = s.shipperid;
+
+select o.orderid, o.orderdate,
+od.*
+from orders as o
+inner join order_details as od on o.orderid=od.orderid
+where o.orderid = '10248';
+
+PRAGMA table_info(products);
+
+select 
+    o.orderid, 
+    o.orderdate,
+    od.unitprice,
+    od.quantity,
+    p.productname,
+    p.quantityperunit
+from orders as o
+inner join order_details as od on o.orderid=od.orderid
+left join products as p on od.productid = p.productid
+left join categories as c ON p.categoryid = c.categoryid
+where o.orderid = '10248'
+;

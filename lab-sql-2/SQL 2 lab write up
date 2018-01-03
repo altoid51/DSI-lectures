@@ -1,0 +1,128 @@
+--Question 0
+
+SELECT name FROM northwind.sqlite_master WHERE type='table'; -- displays the following tables within the northwind database
+select * from categories;
+-- contains: categoryid, categoryname, description, picture
+-- primary key = categoryid 
+-- join to: products
+select * from products; -- productid is the primary key
+--products can link to the Order Details,Categories, Suppliers,
+--contains productid, productname, supplierid, categoryid, quantityperunit, unitprice, unitsinstock, reorderlevel, discontinued
+select * from customers; -- customerid is the primary key
+--contains: customerid, companyname, contactname, contacttitle, address, city, region, postalcode, country, phone, fax
+-- can link to orders, customercustomerdemographics
+select * from employees; -- employeeid is the primary key
+--contains employeeid, lastname, firstname, title, titleofcourtesy, birthdate, hiredate, address, city, region, postalcode, country, homephone, extension, photo, notes, reportsto, photopath
+--can link to orders and employeeterritories
+select * from employeeterritories; -- employeeid is the primary key but TerritoryID is the primary key to the Territories table
+--can link to employees and territories tables
+--contains employeeid and territory columns
+select * from order_details; -- orderid is the primary key
+--contains orderid, productid, unitprice, quantity, and discount
+--links to products and orders
+select * from orders_missing; -- orderid is the primary key
+-- contains orderid, customerid, employeeid, orderdate, requireddate, shippeddate, shipvia, freight, shipname, shipaddress, shipcity, shipregion, shippostalcode, and shipcountry
+-- links to order_details, orders, orders_missing, customers, employees,
+select * from region; -- regionid is the primary key
+-- can link to territories
+-- contains regionid, regiondescription
+select * from shippers;-- shipperid is the primary key
+--contains shipperid, companyname, and phone 
+--links to orders
+select * from suppliers; --supplierid is the primary key
+--contains supplierid, companyname, contactname, contacttitle, address, city, region, postalcode, country, phone, fax, homepage
+--links to products,
+select * from territories; -- territoryid is the primary key
+--contains territoryid, territorydescription, and regionid
+--links to Region
+
+--Question 1
+select categoryname from categories;
+-- Beverages, Condiments, Confections, Dairy Products, Grains/Cereals, Meat/Poultry, Produce, and Seafood
+
+--Question 2 How many products per category does the catalog contain
+
+select COUNT(p.productname), c.categoryname
+from products as p
+left join categories as c on c.categoryid = p.categoryid
+group by c.categoryname
+-- beverages:12 condiments:12, confections:13, dairy products:10, Grains/Cereals:7, Meat/Poultry:6, Produce:6, Seafood:12
+
+--Question 3: for discontinued products
+select COUNT(p.productname), c.categoryname
+from products as p
+left join categories as c on c.categoryid = p.categoryid
+where p.discontinued='0'
+group by c.categoryname
+-- beverages: 9, Condiments:11, Confections:13, Dairy Products: 10, Grain/Cereals: 6, Meat/Poultry:2, Produce:4, Seafood:12
+
+--Question 4: What are the most expensive five products (not discontinued)?
+select unitprice, productname, unitsinstock
+from products
+where discontinued='0'
+order by cast(unitprice as int) desc
+limit 5
+-- Coyte De Blaye: 263.5, Sir Rodney's Marmalade: 81, Carnarvon Tigers: 62.5, Racletter Courdavault: 55, Manjimup Dried Apples: 53
+
+--Question5 How many units of each of these five products are there in stock?
+select unitprice, productname, unitsinstock
+from products
+where discontinued='0'
+order by cast(unitprice as int) desc
+limit 5
+-- Coyte De Blaye, Sir Rodney's Marmalade, Carnarvon Tigers, Racletter Courdavault, Manjimup Dried Apples
+
+--Question 6: How many orders are there in total?
+select count(orderid) from orders;
+--There are 830 orders total
+
+--Question 7: Which country is receiving the most orders
+select shipcountry, count(*)
+from orders
+group by shipcountry
+order by count(*) desc;
+--Germany is receiving the most orders, 122
+
+-- Question 8: Which country is receiving the least amount?
+select shipcountry, count(*)
+from orders
+group by shipcountry
+order by count(*) asc;
+-- Norway is receiving the least amount, 6
+
+-- Question 9: What customer is submitting the highest number of orders?
+select count(od.quantity), c.contactname, o.orderid
+from order_details as od
+inner join orders as o on od.orderid=o.orderid
+left join customers as c on o.customerid=c.customerid;
+-- Paula Wilson is ordering the most 2,155 orders
+
+--Question 10:What is the average freight weight per order, by customer?
+select avg(freight), orderid, customerid
+from orders
+--it is 78.24
+
+--Question 11: What are all the unique cities that customer are located in that begin with R
+SELECT DISTINCT city FROM customers
+WHERE city LIKE 'R%';
+-- Rio De Janeiro, Reggio Emilia, Reims, and Resende
+
+--Question 12: How many countries are customers located in that are not the UK or the US?
+--Can you use LIKE? Why or why not?
+select COUNT(country) from customers
+where country != 'UK' or country != 'USA';
+-- 91 countries, you can use like but you would need to put a or clause
+
+--Question 13: How many customers are in each country (not including the UK or the US)?
+select count(customerid), country from customers
+where country != 'UK' and country != 'USA'
+group by country;
+--Argentina: 3, Austria:2, Belgium:2, Brazil: 9, Canada:3, Denmark:2, Finland:2, France:11, Germany:11, Ireland:1, Italy:3, Mexico:5, Norway:1, Poland:1, Portugal:2, Spain:5, Sweden:2, Switzerland:2, Venezuela: 4
+
+--Question 14 Which employees have less than 100 total orders (from the orders table)? Please include their titleofcourtesy, firstname, and lastname
+select count(o.orderid), e.firstname, e.lastname, e.titleofcourtesy
+from orders as o
+left join employees as e on o.employeeid=e.employeeid
+group by o.employeeid
+having count(o.orderid) < 100;
+-- Steven Buchanan, Michael Suyama, Andrew Fuller, Robert King, Anne Dodworth
